@@ -1,1 +1,1 @@
-raw_nbm_db['MONTH_NAME'] = raw_nbm_db['Month'].dt.strftime('%b')
+raw_nbm_db['INDEX'] = raw_nbm_db['Sub_Segment'].rank(method='dense', ascending=True)
