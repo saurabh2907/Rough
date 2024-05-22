@@ -1,1 +1,11 @@
-=IF(Q3="FYLP",IF(N3<DATE(2024,4,1),"FYLP-Last Year","FYLP-Same Year"),Q3)
+VAR numerator = [Yournumeratorcolumn]
+VAR denominator = [Yourdenominatorcolumn]
+VAR total = numerator + denominator
+VAR numerator_perc = DIVIDE(numerator, total) * 100
+VAR denominator_perc = DIVIDE(denominator, total) * 100
+RETURN
+    CONCATENATE(
+        PERCENTAGE(numerator_perc, 0),
+        ":",
+        PERCENTAGE(denominator_perc, 0)
+    )
