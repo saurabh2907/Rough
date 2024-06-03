@@ -1,11 +1,1 @@
-VAR numerator = [Yournumeratorcolumn]
-VAR denominator = [Yourdenominatorcolumn]
-VAR total = numerator + denominator
-VAR numerator_perc = DIVIDE(numerator, total) * 100
-VAR denominator_perc = DIVIDE(denominator, total) * 100
-RETURN
-    CONCATENATE(
-        PERCENTAGE(numerator_perc, 0),
-        ":",
-        PERCENTAGE(denominator_perc, 0)
-    )
+FIRSTNONBLANK(TOPN(2,VALUES(Product_Wise_IRNB_Actual[Product name]),[DatesMTD_IRNB_Actual],DESC),1)
