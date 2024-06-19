@@ -1,26 +1,31 @@
-CREATE PROCEDURE AUTO_LOAD
+CREATE PROCEDURE ImportCSVData
+    @FilePath NVARCHAR(255)
 AS
-BEGIN 
-
-  -- Create table
-    IF OBJECT_ID('sales') IS NOT NULL DROP TABLE sales
-    CREATE TABLE sales(
-      prod_id VARCHAR(6),
-      qty INTEGER,
-      price INTEGER,
-      discount INTEGER,
-      members VARCHAR(5),
-      txn_id VARCHAR(6),
-      start_txn_time DATETIME
+BEGIN
+    -- Create a temporary table to hold the CSV data
+    CREATE TABLE #TempCSV (
+        Column1 INT,
+        Column2 NVARCHAR(50),
+        Column3 DATE
+        -- Add more columns as per your CSV structure
     );
 
-  -- Remove the old records from the table
-    TRUNCATE TABLE sales;
+    -- BULK INSERT to import the CSV data into the temporary table
+    BULK INSERT #TempCSV
+    FROM @FilePath
+    WITH (
+        FIELDTERMINATOR = ',',
+        ROWTERMINATOR = '\n',
+        FIRSTROW = 2 -- Assuming the first row contains column headers
+    );
 
-  -- Load the data into the table from the CSV file
-    BULK INSERT sales
-    FROM 'C:\Users\Lenovo\Downloads\Files\sales3.csv'
-    WITH (FORMAT = 'CSV', FIELDTERMINATOR = ';', 
-ROWTERMINATOR = '\n', FIRSTROW = 2);
+    -- Insert data into the actual table, ensuring data integrity
+    INSERT INTO YourTable (Column1, Column2, Column3)
+    SELECT Column1, Column2, Column3
+    FROM #TempCSV
+    WHERE -- Add any conditions to filter/validate data here
+          Column1 IS NOT NULL -- Example condition to ensure Column1 is not NULL
 
+    -- Drop the temporary table
+    DROP TABLE #TempCSV;
 END;
