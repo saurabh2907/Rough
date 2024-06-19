@@ -122,9 +122,8 @@ END;
 
 
 
-Msg 4864, Level 16, State 1, Line 56
-Bulk load data conversion error (type mismatch or invalid character for the specified codepage) for row 25882, column 28 (Vertical).
-Msg 4864, Level 16, State 1, Line 56
-Bulk load data conversion error (type mismatch or invalid character for the specified codepage) for row 26274, column 28 (Vertical).
-
-Completion time: 2024-06-19T17:25:49.8800171+05:30
+SELECT
+    OriginalDate,
+    CONVERT(NVARCHAR(10), DATEFROMPARTS(CONVERT(INT, LEFT(OriginalDate, 4)), CONVERT(INT, RIGHT(OriginalDate, 3)), 1), 120) AS FormattedDate
+FROM
+    YourTableName;
