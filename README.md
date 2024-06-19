@@ -115,3 +115,16 @@ BEGIN
     -- Drop the temporary table
     DROP TABLE #DailyPremRetailCSV;
 END;
+
+
+
+
+
+
+
+Msg 4864, Level 16, State 1, Line 56
+Bulk load data conversion error (type mismatch or invalid character for the specified codepage) for row 25882, column 28 (Vertical).
+Msg 4864, Level 16, State 1, Line 56
+Bulk load data conversion error (type mismatch or invalid character for the specified codepage) for row 26274, column 28 (Vertical).
+
+Completion time: 2024-06-19T17:25:49.8800171+05:30
