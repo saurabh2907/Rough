@@ -1,62 +1,6 @@
-WITH CTE AS (
-    SELECT 
-        [AllowanceDate], 
-        [Prd ID],
-        [AG_BRANCHCODE],
-        [Product Code],
-        [POL_TERM_Y],
-        [PREM_FREQ],
-        [PREM_PAYBL_M],
-        [LOB],
-        [NEW_SPCODE],
-        [Channel_Codes],
-        [Partner_Codes],
-        [Retail_grp],
-        SUM([BASECOM_PAID]) AS amt,
-        LAG(SUM([BASECOM_PAID])) OVER (
-            PARTITION BY 
-                [Prd ID],
-                [AG_BRANCHCODE],
-                [Product Code],
-                [POL_TERM_Y],
-                [PREM_FREQ],
-                [PREM_PAYBL_M],
-                [LOB],
-                [NEW_SPCODE],
-                [Channel_Codes],
-                [Partner_Codes],
-                [Retail_grp]
-            ORDER BY [AllowanceDate]
-        ) AS prev_amt
-    FROM Allowances
-    GROUP BY
-        [AllowanceDate],
-        [Prd ID],
-        [AG_BRANCHCODE],
-        [Product Code],
-        [POL_TERM_Y],
-        [PREM_FREQ],
-        [PREM_PAYBL_M],
-        [LOB],
-        [NEW_SPCODE],
-        [Channel_Codes],
-        [Partner_Codes],
-        [Retail_grp]
-)
-SELECT 
-    [AllowanceDate],
-    [Prd ID],
-    [AG_BRANCHCODE],
-    [Product Code],
-    [POL_TERM_Y],
-    [PREM_FREQ],
-    [PREM_PAYBL_M],
-    [LOB],
-    [NEW_SPCODE],
-    [Channel_Codes],
-    [Partner_Codes],
-    [Retail_grp],
-    amt, 
-    prev_amt, 
-    amt - prev_amt AS diff
-FROM CTE;
+UPDATE [FinDB].[dbo].[Daily_Premium_Retail]
+SET [Channel] = CASE WHEN [CHANNELS]  = 'P0ZZ' THEN 'INSTITUTIONAL BUSINESS' ELSE
+				A.[Channel] from [FinDB].[dbo].[T2-Channels] A
+				JOIN [FinDB].[dbo].[Daily_Premium_Retail] B
+				ON A.[T code] = B.[CHANNELS]
+				END
