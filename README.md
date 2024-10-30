@@ -1,10 +1,2 @@
-SELECT 
-    DATEADD(MONTH, 
-            (CAST(SUBSTRING(CAST(j1.Period AS VARCHAR(7)), 5, 2) AS INT) + 3 - 1) % 12, 
-            DATEADD(YEAR, 
-                    (CAST(SUBSTRING(CAST(j1.Period AS VARCHAR(7)), 5, 2) AS INT) + 3 - 1) / 12, 
-                    CAST(SUBSTRING(CAST(j1.Period AS VARCHAR(7)), 1, 4) + '0101' AS DATE)
-                   )
-           ) AS FinDate
-FROM 
-    j1;
+select distinct [Accounting Period], CONCAT(left([Accounting Period],4), '-', FORMAT(CAST(RIGHT([Accounting Period],2) as INT)+3,'00'), '-01') as [Month] from Premium_Dump
+order by Month
