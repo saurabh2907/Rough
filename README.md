@@ -1,23 +1,6 @@
-SELECT DISTINCT
-    [Accounting Period],
-    CONCAT(
-        CASE 
-            WHEN RIGHT([Accounting Period], 2) IN ('10', '11', '12') 
-            THEN LEFT([Accounting Period], 4) + 1 
-            ELSE LEFT([Accounting Period], 4) 
-        END,
-        '-',
-        FORMAT(
-            CASE 
-                WHEN RIGHT([Accounting Period], 2) IN ('10', '11', '12') 
-                THEN RIGHT([Accounting Period], 2) - 9 
-                ELSE RIGHT([Accounting Period], 2) + 3 
-            END,
-            '00'
-        ),
-        '-01'
-    ) AS [Month]
-FROM 
-    Premium_Dump
-ORDER BY 
-    [Month];
+Total Availability (A) = 
+// VAR a = CALCULATE(SELECTEDMEASURE(),Net_Margin[Attribute] = "TotalAllowance-COA+SREPR+SREPO") 
+VAR b = CALCULATE(SELECTEDMEASURE(),Net_Margin[Attribute] = "VNB")
+// VAR c=a+b
+RETURN
+b
