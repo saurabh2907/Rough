@@ -9,10 +9,10 @@ import pandas as pd
 
 # Database connection details
 Driver = 'ODBC Driver 16 for SQL Server'
-Server = 'L1SRW2FND01'
-database = 'FinDB'
-UID = 'mis_finance'
-PWD = 'Misfinancelife@321'
+Server = 
+database =
+UID =
+PWD =
 
 # Create the connection
 cnxn = pyodbc.connect(
