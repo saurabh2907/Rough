@@ -2,21 +2,26 @@
 
 import pyodbc
 import pandas as pd
-# insert data from csv file into dataframe.
-# working directory for csv file: type "pwd" in Azure Data Studio or Linux
-# working directory in Windows c:\users\username
-# Some other example server values are
-# server = 'localhost\sqlexpress' # for a named instance
-# server = 'myserver,port' # to specify an alternate port
-Driver= 'ODBC+Driver+16+for+SQL+Server'
+
+# Load data from CSV file into a DataFrame
+# For example:
+# SMS_Dump = pd.read_csv("path_to_csv_file.csv")
+
+# Database connection details
+Driver = 'ODBC Driver 16 for SQL Server'
 Server = 'L1SRW2FND01'
 database = 'FinDB'
 UID = 'mis_finance'
-PWD= 'Misfinancelife@321'
+PWD = 'Misfinancelife@321'
 
-cnxn = pyodbc.connect('DRIVER={SQL Server};SERVER='+Server+';DATABASE='+database+';UID='+UID+';PWD='+ PWD)
+# Create the connection
+cnxn = pyodbc.connect(
+    f'DRIVER={Driver};SERVER={Server};DATABASE={database};UID={UID};PWD={PWD}'
+)
+cnxn.fast_executemany = True  # Enable fast_executemany for faster bulk inserts
+
 cursor = cnxn.cursor()
-# Insert Dataframe into SQL Server:
+
 # Prepare the SQL query with placeholders
 sql_query = """
     INSERT INTO [FinDB].[DBO].[382000_bajaj_allianz_ccm_groupops_trans]
@@ -25,13 +30,10 @@ sql_query = """
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
 
-# Create a list of tuples containing the DataFrame data
-data_to_insert = [
-    (row['Delivery_DateTime'], row['Publish_DateTime'], row['Item_ID'], 
-                   row['KeyWord'], row['Messege'], row['Mobile_No'], row['Delivery_Status'], 
-                   row['smsParts'], row['Req_Id'])
-    for index, row in SMS_Dump.iterrows()
-]
+# Convert the DataFrame to a list of tuples directly
+data_to_insert = SMS_Dump[['Delivery_DateTime', 'Publish_DateTime', 'Item_ID', 
+                           'KeyWord', 'Messege', 'Mobile_No', 'Delivery_Status', 
+                           'smsParts', 'Req_Id']].values.tolist()
 
 # Execute the SQL query using executemany
 cursor.executemany(sql_query, data_to_insert)
