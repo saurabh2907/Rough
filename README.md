@@ -1,46 +1,24 @@
-%%time
-
-import pyodbc
 import pandas as pd
+from sqlalchemy import create_engine
 
-# Load data from CSV file into a DataFrame
-# For example:
-# SMS_Dump = pd.read_csv("path_to_csv_file.csv")
+# Load data from CSV file into DataFrame
+# Example: SMS_Dump = pd.read_csv("path_to_csv_file.csv")
 
 # Database connection details
-Driver = 'ODBC Driver 16 for SQL Server'
-Server = 'L1SRW2FND01'
+server = 'L1SRW2FND01'
 database = 'FinDB'
-UID = 'mis_finance'
-PWD = 'Misfinancelife@321'
+uid = 'mis_finance'
+pwd = 'Misfinancelife@321'
 
-# Create the connection
-cnxn = pyodbc.connect(
-    f'DRIVER={Driver};SERVER={Server};DATABASE={database};UID={UID};PWD={PWD}'
+# Create an SQLAlchemy engine
+engine = create_engine(f'mssql+pyodbc://{uid}:{pwd}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server')
+
+# Insert the DataFrame into SQL Server
+SMS_Dump.to_sql(
+    '382000_bajaj_allianz_ccm_groupops_trans',  # table name
+    con=engine,
+    schema='dbo',
+    if_exists='append',  # appends to the existing table
+    index=False,  # do not write DataFrame index as a column
+    chunksize=1000  # number of rows to insert at a time
 )
-cnxn.fast_executemany = True  # Enable fast_executemany for faster bulk inserts
-
-cursor = cnxn.cursor()
-
-# Prepare the SQL query with placeholders
-sql_query = """
-    INSERT INTO [FinDB].[DBO].[382000_bajaj_allianz_ccm_groupops_trans]
-    (Delivery_DateTime, Publish_DateTime, Item_ID, KeyWord,
-       Messege, Mobile_No, Delivery_Status, smsParts, Req_Id) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-"""
-
-# Convert the DataFrame to a list of tuples directly
-data_to_insert = SMS_Dump[['Delivery_DateTime', 'Publish_DateTime', 'Item_ID', 
-                           'KeyWord', 'Messege', 'Mobile_No', 'Delivery_Status', 
-                           'smsParts', 'Req_Id']].values.tolist()
-
-# Execute the SQL query using executemany
-cursor.executemany(sql_query, data_to_insert)
-
-# Commit the transaction
-cnxn.commit()
-
-# Close the cursor and connection
-cursor.close()
-cnxn.close()
