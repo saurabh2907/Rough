@@ -1,22 +1,18 @@
 NOP_Count = 
 VAR PolicyTable =
-    ADDCOLUMNS(
-        SUMMARIZE(Dump_FTM, Dump_FTM[POLICY_REF]),
-        "PremAmount",
-            CALCULATE(
-                SUM(Dump_FTM[PREM_AMOUNT])
-            ),
-        "AdjDateFormatted",
-            FORMAT(MAX(Dump_FTM[ADJ_DATE]), "MM-YYYY"),
-        "AccountingDateFormatted",
-            FORMAT(MAX(Dump_FTM[ACCOUNTING_DATE]), "MM-YYYY")
+    SUMMARIZE(
+        Dump_FTM,
+        Dump_FTM[POLICY_REF],
+        "PremAmount", SUM(Dump_FTM[PREM_AMOUNT]),
+        "MaxAdjDate", MAX(Dump_FTM[ADJ_DATE]),
+        "MaxAccountingDate", MAX(Dump_FTM[ACCOUNTING_DATE])
     )
-
 RETURN
-    COUNTROWS(
-        FILTER(
-            PolicyTable,
-            [AdjDateFormatted] = [AccountingDateFormatted] &&
-            [PremAmount] > 0
-        )
+COUNTROWS(
+    FILTER(
+        PolicyTable,
+        MONTH([MaxAdjDate]) = MONTH([MaxAccountingDate]) &&
+        YEAR([MaxAdjDate]) = YEAR([MaxAccountingDate]) &&
+        [PremAmount] > 0
     )
+)
