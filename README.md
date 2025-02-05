@@ -1,12 +1,22 @@
-SELECT
-    YourColumn,
-    CASE
-        WHEN CHARINDEX('Fre_', YourColumn) > 0 AND CHARINDEX('|', YourColumn, CHARINDEX('Fre_', YourColumn)) > CHARINDEX('Fre_', YourColumn) + 4
-        THEN SUBSTRING(
-            YourColumn,
-            CHARINDEX('Fre_', YourColumn) + 4,
-            CHARINDEX('|', YourColumn, CHARINDEX('Fre_', YourColumn)) - CHARINDEX('Fre_', YourColumn) - 4
+NOP_Count = 
+VAR PolicyTable =
+    ADDCOLUMNS(
+        SUMMARIZE(Dump_FTM, Dump_FTM[POLICY_REF]),
+        "PremAmount",
+            CALCULATE(
+                SUM(Dump_FTM[PREM_AMOUNT])
+            ),
+        "AdjDateFormatted",
+            FORMAT(MAX(Dump_FTM[ADJ_DATE]), "MM-YYYY"),
+        "AccountingDateFormatted",
+            FORMAT(MAX(Dump_FTM[ACCOUNTING_DATE]), "MM-YYYY")
+    )
+
+RETURN
+    COUNTROWS(
+        FILTER(
+            PolicyTable,
+            [AdjDateFormatted] = [AccountingDateFormatted] &&
+            [PremAmount] > 0
         )
-        ELSE NULL
-    END AS ExtractedValue
-FROM YourTable;
+    )
