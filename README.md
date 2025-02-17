@@ -1,18 +1,20 @@
 CREATE OR REPLACE PROCEDURE Daily_RiderPrem
 AS
-    CurrentDay    VARCHAR(11);
-    PreviousDay   VARCHAR(11);
+    CurrentDay  VARCHAR2(11);
+    PreviousDay VARCHAR2(11);
 BEGIN
-    CurrentDay := TO_CHAR(TRUNC(SYSDATE), 'DD-MON-YYYY');
+    -- Set current and previous day values
+    CurrentDay  := TO_CHAR(TRUNC(SYSDATE), 'DD-MON-YYYY');
     PreviousDay := TO_CHAR(TRUNC(SYSDATE - 1), 'DD-MON-YYYY');
     DBMS_OUTPUT.PUT_LINE('Current Day: ' || CurrentDay);
     DBMS_OUTPUT.PUT_LINE('Previous Day: ' || PreviousDay);
 
-    -- Deleting data for the current and previous day
+    -- Delete data for the current and previous day
     DELETE FROM FIN_DWH_RPT.RIDER_PREMIUM
-    WHERE ACCOUNTING_DATE >= TRUNC(SYSDATE - 1)
-      AND ACCOUNTING_DATE < TRUNC(SYSDATE + 1);
+     WHERE ACCOUNTING_DATE >= TRUNC(SYSDATE - 1)
+       AND ACCOUNTING_DATE < TRUNC(SYSDATE + 1);
 
+    -- Drop the temporary table if it exists
     BEGIN
         EXECUTE IMMEDIATE 'DROP TABLE RIDER_PREMIUM_NEW';
     EXCEPTION
@@ -22,8 +24,8 @@ BEGIN
             END IF;
     END;
 
-    -- Inserting data for the current and previous day
-    CREATE TABLE RIDER_PREMIUM_NEW AS
+    -- Create the temporary table using dynamic SQL
+    EXECUTE IMMEDIATE q'[CREATE TABLE RIDER_PREMIUM_NEW AS
     SELECT X.ACCOUNTING_DATE, X.ACCT_PREM_TYPE, X.ADJ_DATE, X.AGENT_BRANCH_CODE, X.AGENT_CODE, X.AGENT_NAME, X.ANNULIZED,
            X.BENEFIT_TERM, X.BOOKING_FREQUENCY, X.CHANNEL, X.ISSUANCE_YEAR, X.MONTH, X.PACKAGE_CODE, X.POLICY_REF,
            X.PREMIUM_TERM, X.PREM_AMOUNT, X.PRODUCT_ID, X.RIDER_NAME, X.RIDER_TYPE, X.SUBFACTOR_1_VAL, X.T1_VALUE,
@@ -58,9 +60,9 @@ BEGIN
                  OWB_ADMIN.GET_FISCAL_YEAR(C.ADJ_DATE), C.ADJ_DATE, ANNULIZED, PACKAGE_CODE, SUBSTR(T1_VALUE, -2),
                  D.RIDER_NAME, D.RIDER_TYPE, A.SUBFACTOR_1_VAL, TO_CHAR(A.ACCOUNTING_DATE, 'Mon-RRRR'), E.VERTICAL, E.PRODUCT_MIX
     ) X
-    WHERE X.PREM_AMOUNT <> 0;
+    WHERE X.PREM_AMOUNT <> 0]';
 
-    -- Inserting data into the target table
+    -- Insert data from the temporary table into the target table
     INSERT INTO FIN_DWH_RPT.RIDER_PREMIUM (
         ACCOUNTING_DATE, ACCT_PREM_TYPE, ADJ_DATE, AGENT_BRANCH_CODE, AGENT_CODE, AGENT_NAME, ANNULIZED, ANP,
         BENEFIT_TERM, BOOKING_FREQUENCY, CHANNEL, GT_3X, GT_3X_NB_PREM, ISSUANCE_YEAR, LT_1X, LT_1X_NB_PREM,
@@ -75,38 +77,46 @@ BEGIN
            SUBFACTOR_1_VAL, T1_VALUE, UNOP, U_PREMIUM_AMT, VERTICAL, VERTICAL_CODE
     FROM RIDER_PREMIUM_NEW;
 
-    -- Merging data to update additional columns
+    -- Merge to update additional columns
     MERGE INTO FIN_DWH_RPT.RIDER_PREMIUM t
     USING (
-        SELECT DISTINCT a.policy_ref, b.MAIN_CHANNEL, b.SUB_CHANNEL, b.VERTICAL_NAME, b.RELATIONSHIP_NAME, b.P_PRODUCT_TYPE, a.NOP
-        FROM FIN_DWH_RPT.RIDER_PREMIUM a
-        JOIN OWB_ADMIN.RPT_POL_AGNT_CHNL_SUBCHNL_VER b ON a.POLICY_REF = b.POLICY_REF
+        SELECT DISTINCT a.policy_ref,
+                        b.MAIN_CHANNEL,
+                        b.SUB_CHANNEL,
+                        b.VERTICAL_NAME,
+                        b.RELATIONSHIP_NAME,
+                        b.P_PRODUCT_TYPE,
+                        a.NOP
+          FROM FIN_DWH_RPT.RIDER_PREMIUM a
+          JOIN OWB_ADMIN.RPT_POL_AGNT_CHNL_SUBCHNL_VER b ON a.POLICY_REF = b.POLICY_REF
     ) s
     ON (t.POLICY_REF = s.POLICY_REF)
     WHEN MATCHED THEN
-        UPDATE SET t.MAIN_CHANNEL = s.MAIN_CHANNEL,
-                   t.SUB_CHANNEL = s.SUB_CHANNEL,
-                   t.VERTICAL_NAME = s.VERTICAL_NAME,
+        UPDATE SET t.MAIN_CHANNEL      = s.MAIN_CHANNEL,
+                   t.SUB_CHANNEL       = s.SUB_CHANNEL,
+                   t.VERTICAL_NAME     = s.VERTICAL_NAME,
                    t.RELATIONSHIP_NAME = s.RELATIONSHIP_NAME,
-                   t.RETAIL_GRP = s.P_PRODUCT_TYPE
-        WHERE t.ACCOUNTING_DATE >= SYSDATE - 3;
+                   t.RETAIL_GRP        = s.P_PRODUCT_TYPE
+         WHERE t.ACCOUNTING_DATE >= SYSDATE - 3;
 
-    -- Updating IRNB based on ACCT_PREM_TYPE
+    -- Update IRNB based on ACCT_PREM_TYPE
     UPDATE FIN_DWH_RPT.RIDER_PREMIUM
-    SET IRNB = CASE
-                   WHEN ACCT_PREM_TYPE = 'SP' THEN PREM_AMOUNT * 0.1
-                   WHEN ACCT_PREM_TYPE = 'RP' THEN 0
-                   ELSE PREM_AMOUNT
-               END
-    WHERE IRNB IS NULL;
+       SET IRNB = CASE
+                      WHEN ACCT_PREM_TYPE = 'SP' THEN PREM_AMOUNT * 0.1
+                      WHEN ACCT_PREM_TYPE = 'RP' THEN 0
+                      ELSE PREM_AMOUNT
+                  END
+     WHERE IRNB IS NULL;
 
-    -- Setting default values for unmapped channels
+    -- Set default values for unmapped channels
     UPDATE FIN_DWH_RPT.RIDER_PREMIUM
-    SET MAIN_CHANNEL = 'UNMAPPED',
-        SUB_CHANNEL = 'UNMAPPED',
-        VERTICAL_NAME = 'UNMAPPED',
-        RELATIONSHIP_NAME = 'UNMAPPED',
-        RETAIL_GRP = 'UNMAPPED'
-    WHERE MAIN_CHANNEL IS NULL;
+       SET MAIN_CHANNEL    = 'UNMAPPED',
+           SUB_CHANNEL     = 'UNMAPPED',
+           VERTICAL_NAME   = 'UNMAPPED',
+           RELATIONSHIP_NAME = 'UNMAPPED',
+           RETAIL_GRP      = 'UNMAPPED'
+     WHERE MAIN_CHANNEL IS NULL;
 
+    COMMIT;
 END Daily_RiderPrem;
+/
