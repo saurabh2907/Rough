@@ -1,12 +1,24 @@
-BEGIN
-   DBMS_SCHEDULER.create_job (
-      job_name        => 'daily_rider_prem_job',
-      job_type        => 'STORED_PROCEDURE',
-      job_action      => 'Daily_RiderPrem',
-      start_date      => TRUNC(SYSDATE) + 9/24,  -- sets start at 9 AM today (or tomorrow if current time > 9 AM)
-      repeat_interval => 'FREQ=DAILY; BYHOUR=9; BYMINUTE=0; BYSECOND=0',
-      enabled         => TRUE,
-      auto_drop       => FALSE,
-      comments        => 'Job to run the Daily_RiderPrem procedure every day at 9 AM'
-   );
-END;
+-- Pre-aggregate ZZ cover values
+WITH zz_cover AS (
+    SELECT POLICY_REF, MAX(SUM_INSURED_WHOLE_COVER) AS TOTAL_ZZ_COVER
+    FROM RIDER_SUM_ASSURED
+    WHERE T1_CODE = 'ZZ'
+    GROUP BY POLICY_REF
+),
+non_zz_cover AS (
+    SELECT POLICY_REF, T1_CODE, SUM_INSURED_WHOLE_COVER AS TOTAL_NON_ZZ_COVER
+    FROM RIDER_SUM_ASSURED
+    WHERE T1_CODE <> 'ZZ'
+      AND SUM_INSURED_WHOLE_COVER IS NOT NULL
+)
+
+-- Join pre-aggregated results
+SELECT DISTINCT 
+    nzc.POLICY_REF, 
+    nzc.T1_CODE, 
+    zzc.TOTAL_ZZ_COVER, 
+    nzc.TOTAL_NON_ZZ_COVER,
+    ROUND(nzc.TOTAL_NON_ZZ_COVER / NULLIF(zzc.TOTAL_ZZ_COVER, 0), 0) AS rider_multiplier
+FROM non_zz_cover nzc
+LEFT JOIN zz_cover zzc
+  ON nzc.POLICY_REF = zzc.POLICY_REF;
