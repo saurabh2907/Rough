@@ -1,24 +1,25 @@
--- Pre-aggregate ZZ cover values
-WITH zz_cover AS (
-    SELECT POLICY_REF, MAX(SUM_INSURED_WHOLE_COVER) AS TOTAL_ZZ_COVER
-    FROM RIDER_SUM_ASSURED
-    WHERE T1_CODE = 'ZZ'
-    GROUP BY POLICY_REF
-),
-non_zz_cover AS (
-    SELECT POLICY_REF, T1_CODE, SUM_INSURED_WHOLE_COVER AS TOTAL_NON_ZZ_COVER
-    FROM RIDER_SUM_ASSURED
-    WHERE T1_CODE <> 'ZZ'
-      AND SUM_INSURED_WHOLE_COVER IS NOT NULL
-)
+Dear Sir,
 
--- Join pre-aggregated results
-SELECT DISTINCT 
-    nzc.POLICY_REF, 
-    nzc.T1_CODE, 
-    zzc.TOTAL_ZZ_COVER, 
-    nzc.TOTAL_NON_ZZ_COVER,
-    ROUND(nzc.TOTAL_NON_ZZ_COVER / NULLIF(zzc.TOTAL_ZZ_COVER, 0), 0) AS rider_multiplier
-FROM non_zz_cover nzc
-LEFT JOIN zz_cover zzc
-  ON nzc.POLICY_REF = zzc.POLICY_REF;
+ 
+
+I am writing to formally resign from my position as Sr. Executive at MDIndia Health Insurance TPA Pvt. Ltd. effective 21/11/2023. This decision has not been easy, as I have enjoyed my time working with the company and have learned a great deal from the experiences here. 
+
+ 
+
+I would like to express my gratitude for the opportunities and support provided during my tenure. It has been a pleasure collaborating with the team and contributing to the company's goals and projects.
+
+ 
+
+I am committed to ensuring a smooth transition during this period. I am open to discussing a suitable handover plan and completing any pending tasks to the best of my ability before my departure.
+
+ 
+
+I want to thank you and the entire team for the support and encouragement I have received during my time here. I am confident that the skills and experiences gained during my tenure will serve me well in my future endeavors. 
+
+ 
+
+Please find below details:
+
+Name - Saurabh Sachindra Paliwal
+
+Employee Id - 18640
