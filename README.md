@@ -1,3 +1,9 @@
+Volume_Delta_vs_Board = 
+IF(ISINSCOPE(Grade[Clean_Grade]), ([.Board]*[Delta vs Board.])/100/12,
+SUMX(VALUES(Grade[Clean_Grade]), ([.Board]*[Delta vs Board.])/100/12)
+)
+
+
 VAR userEmail = USERPRINCIPALNAME()
 RETURN
     COUNTROWS(
