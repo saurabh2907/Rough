@@ -1,4 +1,14 @@
-CALCULATE(([.Board]*[Delta vs Board.])/100/12, Grade[Clean_Grade] IN (SELECT DISTINCT Grade[Clean_Grade]))
+Volume_Delta_vs_Board = 
+VAR CurrentContext = CALCULATE([.Board][Delta vs Board.], ALLSELECTED('Date'))
+RETURN
+IF(
+    ISINSCOPE(Grade[Clean_Grade]),
+    CurrentContext / 100 / 12,
+    SUMX(
+        VALUES(Grade[Clean_Grade]),
+        CALCULATE(CurrentContext / 100 / 12, ALLEXCEPT(Grade, Grade[Clean_Grade]))
+    )
+)
 
 
 
