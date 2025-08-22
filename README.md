@@ -1,7 +1,5 @@
-Volume_Delta_vs_Board = 
-IF(ISINSCOPE(Grade[Clean_Grade]), ([.Board]*[Delta vs Board.])/100/12,
-SUMX(VALUES(Grade[Clean_Grade]), ([.Board]*[Delta vs Board.])/100/12)
-)
+CALCULATE(([.Board]*[Delta vs Board.])/100/12, Grade[Clean_Grade] IN (SELECT DISTINCT Grade[Clean_Grade]))
+
 
 
 VAR userEmail = USERPRINCIPALNAME()
