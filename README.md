@@ -1,28 +1,43 @@
-Volume_Delta_vs_Board = 
-VAR CurrentContext = CALCULATE([.Board][Delta vs Board.], ALLSELECTED('Date'))
-RETURN
-IF(
-    ISINSCOPE(Grade[Clean_Grade]),
-    CurrentContext / 100 / 12,
-    SUMX(
-        VALUES(Grade[Clean_Grade]),
-        CALCULATE(CurrentContext / 100 / 12, ALLEXCEPT(Grade, Grade[Clean_Grade]))
-    )
-)
+Death, Surrender, Maturity, Annuity
+Death- 
+Statutory Reserves
+NB Strain
+Self sustaining product post issuance
+
+In
+Prem
+Ri recovery
+Investment income
+
+Out
+Reserves
+
+
+Solvency ratio:- 
 
 
 
-VAR userEmail = USERPRINCIPALNAME()
-RETURN
-    COUNTROWS(
-        FILTER(
-            'AccessMap',
-            'AccessMap'[Email] = userEmail &&
-            (
-                ('AccessMap'[GM] = 'Sales'[GM] || ISBLANK('AccessMap'[GM])) &&
-                ('AccessMap'[Zone] = 'Sales'[Zone] || ISBLANK('AccessMap'[Zone])) &&
-                ('AccessMap'[Vertical] = 'Sales'[Vertical] || ISBLANK('AccessMap'[Vertical])) &&
-                ('AccessMap'[SGM] = 'Sales'[SGM] || ISBLANK('AccessMap'[SGM]))
-            )
-        )
-    ) > 0
+Revenue Account
+
+ASM
+
+Sum At Risk (RSM)
+
+ASM/RSM >= 150%
+
+Persistency
+Surrenders
+
+Section 45
+
+EDC Claims:- 50 out of 100 are in first 3 year
+
+A/E Ratio
+
+IRR
+
+IALM
+
+PVFP
+
+ROC:- Return on capital
